@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  passwordChangedAt: Date,
 });
 
 // Encrypt password
@@ -48,6 +49,24 @@ userSchema.pre("save", async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+// Check Password
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// Check change password after creating JWT
+userSchema.methods.changePasswordAfter = function (JWTCreateTime) {
+  if (this.passwordChangedAt) {
+    return JWTCreateTime < this.passwordChangedAt.getTime() / 1000;
+  }
+
+  // False means NOT Changed
+  return false;
+};
 
 const User = mongoose.model("User", userSchema);
 

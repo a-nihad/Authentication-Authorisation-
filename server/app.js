@@ -9,6 +9,11 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// app.use((req, res, next) => {
+//   console.log(req.headers);
+//   next();
+// });
+
 app.use("/api", authRouter);
 app.use("/api/users", userRouter);
 
