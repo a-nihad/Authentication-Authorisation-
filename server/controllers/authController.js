@@ -108,3 +108,32 @@ export const restictTo = (...roles) => {
     next();
   };
 };
+
+export const updatePassword = async (req, res, next) => {
+  try {
+    // 1) Get user from collection
+    const user = await User.findById(req.user.id);
+
+    // 2) Check if POSTed password is correct
+    if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
+      return next(new Error("Your current password is wrong"));
+
+    // 3) If correct, Update password
+    user.password = req.body.password;
+    user.passwordConfirm = req.body.passwordConfirm;
+
+    await user.save();
+
+    // 4) send JWT
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+
+    res.status(200).json({
+      status: "success",
+      token,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
