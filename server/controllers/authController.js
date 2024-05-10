@@ -137,3 +137,35 @@ export const updatePassword = async (req, res, next) => {
     console.log(err);
   }
 };
+
+export const updateMe = async (req, res, next) => {
+  try {
+    // 1) Create error if user POSTs password data
+    if (req.body.password || req.body.passwordConfirm)
+      return next(
+        new Error(
+          "This route is not for update password. Please use /upateMyPassword"
+        )
+      );
+
+    // 2) Create error if user POSTs role data
+    if (req.body.role) return next(new Error("Cannot update user role"));
+
+    console.log("hi");
+
+    // 3) Update user document
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        data: updatedUser,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
