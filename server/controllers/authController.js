@@ -154,7 +154,7 @@ export const updateMe = async (req, res, next) => {
     console.log("hi");
 
     // 3) Update user document
-    const updatedUser = await User.findByIdAndUpdate(req.user._id, req.body, {
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, req.body, {
       new: true,
       runValidators: true,
     });
@@ -164,6 +164,20 @@ export const updateMe = async (req, res, next) => {
       data: {
         data: updatedUser,
       },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// Delete user :- it doesn't actually delete but inactive user for future use
+export const deleteMe = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, { active: false });
+
+    res.status(200).json({
+      status: "success",
+      data: null,
     });
   } catch (err) {
     console.log(err);
