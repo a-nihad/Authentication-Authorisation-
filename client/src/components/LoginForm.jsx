@@ -1,16 +1,20 @@
 import { Formik, Form } from "formik";
 import Button from "./Button";
 import InputForm from "./InputForm";
+import useLogin from "../hooks/useLogin";
 import { loginValidation } from "../utils/Validations";
 
 function LoginForm() {
+  const { isLoading, loginUser } = useLogin();
+
+  // Formik
   const initialValues = {
     email: "",
     password: "",
   };
 
   const submitForm = (values) => {
-    console.log(values);
+    loginUser(values);
   };
 
   return (
@@ -32,7 +36,9 @@ function LoginForm() {
           name="password"
           placeholder="Password"
         />
-        <Button type='submit' className="bg-blue-600 mt-5 text-white"> Login </Button>
+        <Button type="submit" className="bg-blue-600 mt-5 text-white">
+          Login
+        </Button>
       </Form>
     </Formik>
   );

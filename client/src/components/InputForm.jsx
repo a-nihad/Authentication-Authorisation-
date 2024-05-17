@@ -4,7 +4,7 @@ import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 function InputForm({ label, name, type, ...rest }) {
   const [show, setShow] = useState(false);
-  const inpType = show ? "text" : type || "text";
+  const inputType = show ? "text" : type || "text";
 
   return (
     <div className="flex flex-col items-start relative">
@@ -14,11 +14,12 @@ function InputForm({ label, name, type, ...rest }) {
       <Field
         id={name}
         name={name}
-        type={inpType}
+        type={inputType}
         {...rest}
         className="border w-full rounded-lg px-3 py-2 outline-blue-500"
       />
 
+      {/* Password show or hide */}
       <button
         type="button"
         onClick={() => setShow(!show)}

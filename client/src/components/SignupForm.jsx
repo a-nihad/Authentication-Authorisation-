@@ -1,9 +1,12 @@
 import { Formik, Form } from "formik";
 import Button from "./Button";
 import InputForm from "./InputForm";
+import useSignup from "../hooks/useSignup";
 import { signupValidation } from "../utils/Validations";
 
 function SignupForm() {
+  const { isLoading, registerUser } = useSignup();
+
   const initialValues = {
     fullName: "",
     email: "",
@@ -12,7 +15,7 @@ function SignupForm() {
   };
 
   const submitForm = (values) => {
-    console.log(values);
+    registerUser(values);
   };
 
   return (

@@ -1,16 +1,19 @@
 import { promisify } from "util";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
+import AppError from "../utils/AppError.js";
 
 export const signup = async (req, res, next) => {
   try {
-    // const newUser = await User.create(req.body);
+    const { fullName, email, password, passwordConfirm, passwordChangedAt } =
+      req.body;
+
     const newUser = await User.create({
-      fullName: req.body.fullName,
-      email: req.body.email,
-      password: req.body.password,
-      passwordConfirm: req.body.passwordConfirm,
-      passwordChangedAt: req.body.passwordChangedAt,
+      fullName,
+      email,
+      password,
+      passwordConfirm,
+      passwordChangedAt,
     });
 
     // JWT
@@ -20,10 +23,9 @@ export const signup = async (req, res, next) => {
 
     res.status(201).json({
       status: "success",
+      message: "Registration is successfully",
       token,
-      data: {
-        user: newUser,
-      },
+      user: newUser,
     });
   } catch (err) {
     next(err);
@@ -36,14 +38,19 @@ export const login = async (req, res, next) => {
 
     // 1) Check if email and password axist
     if (!email || !password)
-      return next(new Error("Please provide email and password"));
+      return next(new AppError("Please provide email and password", 400));
 
     // 2) Check if user exists
     const user = await User.findOne({ email });
 
+    if (!user)
+      return next(
+        new AppError("This user does not exist, please sign up", 400)
+      );
+
     // 3) Check Password is correct
-    if (!user || !(await user.correctPassword(password, user.password)))
-      return next(new Error("Incorrect email or password"));
+    if (!(await user.correctPassword(password, user.password)))
+      return next(new AppError("Incorrect email or password", 401));
 
     // 4) IF everything ok, send token to clint
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -52,6 +59,8 @@ export const login = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
+      message: "Logged in successfully",
+      user,
       token,
     });
   } catch (err) {
@@ -70,7 +79,7 @@ export const protect = async (req, res, next) => {
 
     if (!token)
       return next(
-        new Error("You are not logged in! please login to get access.")
+        new AppError("You are not logged in! please login to get access.", 400)
       );
 
     // 2) Verification token
@@ -80,13 +89,16 @@ export const protect = async (req, res, next) => {
     const currentUser = await User.findById(decoded.id);
     if (!currentUser)
       return next(
-        new Error("The user beloging to this token does no longer exist.")
+        new AppError(
+          "The user beloging to this token does no longer exist.",
+          400
+        )
       );
 
     // 4) Check if user changed password after token was issued
     if (currentUser.changePasswordAfter(decoded.iat))
       return next(
-        new Error("User recently changed password! Please login again")
+        new AppError("User recently changed password! Please login again", 400)
       );
 
     // Grant access to protected route
@@ -102,7 +114,7 @@ export const restictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role))
       return next(
-        new Error("You do not have permission to perform this action")
+        new AppError("You do not have permission to perform this action", 400)
       );
 
     next();
@@ -116,7 +128,7 @@ export const updatePassword = async (req, res, next) => {
 
     // 2) Check if POSTed password is correct
     if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
-      return next(new Error("Your current password is wrong"));
+      return next(new AppError("Your current password is wrong", 400));
 
     // 3) If correct, Update password
     user.password = req.body.password;
@@ -143,15 +155,15 @@ export const updateMe = async (req, res, next) => {
     // 1) Create error if user POSTs password data
     if (req.body.password || req.body.passwordConfirm)
       return next(
-        new Error(
-          "This route is not for update password. Please use /upateMyPassword"
+        new AppError(
+          "This route is not for update password. Please use /upateMyPassword",
+          400
         )
       );
 
     // 2) Create error if user POSTs role data
-    if (req.body.role) return next(new Error("Cannot update user role"));
-
-    console.log("hi");
+    if (req.body.role)
+      return next(new AppError("Cannot update user role", 400));
 
     // 3) Update user document
     const updatedUser = await User.findByIdAndUpdate(req.user.id, req.body, {
@@ -161,9 +173,8 @@ export const updateMe = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: {
-        data: updatedUser,
-      },
+      message: "User data updated",
+      data: updatedUser,
     });
   } catch (err) {
     console.log(err);
@@ -177,6 +188,7 @@ export const deleteMe = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
+      message: "User deleted",
       data: null,
     });
   } catch (err) {

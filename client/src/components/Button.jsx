@@ -1,10 +1,6 @@
-function Button({ children, onClick, className, ...props }) {
+function Button({ children, className, ...props }) {
   return (
-    <button
-      className={`py-2 font-semibold rounded-lg ${className}`}
-      onClick={onClick}
-      {...props}
-    >
+    <button className={`py-2 font-semibold rounded-lg ${className}`} {...props}>
       {children}
     </button>
   );
