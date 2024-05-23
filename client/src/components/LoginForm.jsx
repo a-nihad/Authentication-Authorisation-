@@ -37,7 +37,7 @@ function LoginForm() {
           placeholder="Password"
         />
         <Button type="submit" className="bg-blue-600 mt-5 text-white">
-          Login
+          {isLoading ? "Loading..." : "Login"}
         </Button>
       </Form>
     </Formik>

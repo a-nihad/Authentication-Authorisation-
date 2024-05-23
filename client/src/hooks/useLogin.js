@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Instance from "../api/axios";
 
 const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,10 +15,7 @@ const useLogin = () => {
     try {
       setIsLoading(true);
 
-      const { data, status } = await axios.post(
-        "http://localhost:8000/api/login",
-        value
-      );
+      const { data, status } = await Instance.post("/login", value);
 
       if (status === 200) {
         toast.success(data.message);

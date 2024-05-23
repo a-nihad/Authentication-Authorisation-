@@ -3,23 +3,25 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import AppError from "../utils/AppError.js";
 
+// Create token
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+
 export const signup = async (req, res, next) => {
   try {
-    const { fullName, email, password, passwordConfirm, passwordChangedAt } =
-      req.body;
+    const { fullName, email, password, passwordConfirm } = req.body;
 
     const newUser = await User.create({
       fullName,
       email,
       password,
       passwordConfirm,
-      passwordChangedAt,
     });
 
     // JWT
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    const token = signToken(newUser._id);
 
     res.status(201).json({
       status: "success",
@@ -53,9 +55,7 @@ export const login = async (req, res, next) => {
       return next(new AppError("Incorrect email or password", 401));
 
     // 4) IF everything ok, send token to clint
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    const token = signToken(user._id);
 
     res.status(200).json({
       status: "success",
@@ -95,12 +95,6 @@ export const protect = async (req, res, next) => {
         )
       );
 
-    // 4) Check if user changed password after token was issued
-    if (currentUser.changePasswordAfter(decoded.iat))
-      return next(
-        new AppError("User recently changed password! Please login again", 400)
-      );
-
     // Grant access to protected route
     req.user = currentUser;
 
@@ -135,11 +129,8 @@ export const updatePassword = async (req, res, next) => {
     user.passwordConfirm = req.body.passwordConfirm;
 
     await user.save();
-
     // 4) send JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    const token = signToken(user._id);
 
     res.status(200).json({
       status: "success",

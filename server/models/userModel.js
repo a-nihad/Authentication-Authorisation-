@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please provide your email"],
     unique: true,
+    // unique: [true, "The email address is already in use"],
     lowercase: true,
     validate: [validator.isEmail, "Please provide a valid email"],
   },
@@ -34,7 +35,6 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
-  passwordChangedAt: Date,
   active: {
     type: Boolean,
     default: true,
@@ -69,16 +69,6 @@ userSchema.methods.correctPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
-};
-
-// Check change password after creating JWT
-userSchema.methods.changePasswordAfter = function (JWTCreateTime) {
-  if (this.passwordChangedAt) {
-    return JWTCreateTime < this.passwordChangedAt.getTime() / 1000;
-  }
-
-  // False means NOT Changed
-  return false;
 };
 
 const User = mongoose.model("User", userSchema);

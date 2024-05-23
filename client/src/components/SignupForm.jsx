@@ -46,7 +46,7 @@ function SignupForm() {
         />
 
         <Button type="submit" className="bg-blue-600 mt-5 text-white">
-          Sign Up
+          {isLoading ? "Loading..." : "Sign Up"}
         </Button>
       </Form>
     </Formik>
